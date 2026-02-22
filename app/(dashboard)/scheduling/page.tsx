@@ -18,7 +18,7 @@ const initialFormData = {
 
 function getRangeStartEnd(
   viewMode: "Month" | "Week",
-  currentDate: Date
+  currentDate: Date,
 ): { start: Date; end: Date } {
   const year = currentDate.getFullYear();
   const monthIdx = currentDate.getMonth();
@@ -59,7 +59,9 @@ export default function SchedulingPage() {
   const [viewMode, setViewMode] = useState<"Month" | "Week">("Month");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDateObj, setSelectedDateObj] = useState(new Date());
-  const [selectedTherapistIds, setSelectedTherapistIds] = useState<string[]>([]);
+  const [selectedTherapistIds, setSelectedTherapistIds] = useState<string[]>(
+    [],
+  );
 
   const loadRange = useCallback(() => {
     const { start, end } = getRangeStartEnd(viewMode, currentDate);

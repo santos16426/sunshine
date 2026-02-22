@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   usePatientStore,
@@ -14,6 +14,14 @@ import { UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 export default function PatientsPage() {
+  return (
+    <Suspense>
+      <PatientsPageContent />
+    </Suspense>
+  );
+}
+
+function PatientsPageContent() {
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
 

@@ -7,10 +7,10 @@ export const serviceFormSchema = z.object({
     .max(100, "Name must be 100 characters or less"),
   description: z.string(),
   rate_per_hour: z
-    .number({ invalid_type_error: "Rate is required" })
+    .number({ error: "Rate is required" })
     .positive("Rate per hour must be greater than 0"),
   clinic_cut: z
-    .number({ invalid_type_error: "Clinic cut is required" })
+    .number({ error: "Clinic cut is required" })
     .min(0.01, "Clinic cut must be greater than 0")
     .max(99.99, "Clinic cut must be less than 100"),
 });
