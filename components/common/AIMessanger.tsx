@@ -27,23 +27,19 @@ export default function IntelligentChatbot({
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Monitor scroll position to show/hide bot
   useEffect(() => {
     const handleScroll = () => {
       const scrollHeight = document.documentElement.scrollHeight;
       const scrollTop = window.scrollY;
       const clientHeight = window.innerHeight;
 
-      // Calculate scroll percentage
       const scrollPercent = (scrollTop + clientHeight) / scrollHeight;
 
-      // Threshold: 40% of page.
-      // Also hides if we are back at the top (less than 100px from top)
       if (scrollPercent > 0.2 && scrollTop > 100) {
         setIsVisible(true);
       } else {
         setIsVisible(false);
-        setIsOpen(false); // Auto-close if user scrolls back to top
+        setIsOpen(false);
       }
     };
 
@@ -51,7 +47,6 @@ export default function IntelligentChatbot({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Use a separate dummy div at the end of the list for better scroll anchoring
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = (delay = 0) => {

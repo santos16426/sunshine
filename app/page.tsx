@@ -364,7 +364,7 @@ const App = () => {
                     </div>
 
                     <button className="mt-8 bg-slate-900 text-white w-full py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-slate-800 transition-colors">
-                      Enquire Now
+                      Inquire Now
                     </button>
                   </div>
                 </div>

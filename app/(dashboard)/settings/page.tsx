@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import {
   Check,
   Sun,
@@ -74,7 +74,7 @@ export default function Settings() {
             </div>
             <h1 className="text-3xl font-bold tracking-tight">Appearance</h1>
             <p className="text-muted-foreground text-sm max-w-sm">
-              Customise the visual identity of your dashboard and system
+              Customize the visual identity of your dashboard and system
               components.
             </p>
           </div>

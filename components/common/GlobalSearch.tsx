@@ -60,7 +60,7 @@ export default function GlobalSearch() {
     setModKey(
       typeof navigator !== "undefined" && navigator.platform.includes("Mac")
         ? "⌘"
-        : "Ctrl"
+        : "Ctrl",
     );
   }, []);
 
