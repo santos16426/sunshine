@@ -46,9 +46,13 @@ export function PatientForm({
   onClose,
 }: PatientFormProps) {
   const [mounted, setMounted] = useState(false);
-  const [form, setForm] = useState<PatientFormData>(initialData ?? blankFormData);
+  const [form, setForm] = useState<PatientFormData>(
+    initialData ?? blankFormData,
+  );
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof PatientFormData, string>>>({});
+  const [fieldErrors, setFieldErrors] = useState<
+    Partial<Record<keyof PatientFormData, string>>
+  >({});
   const [isSaving, setIsSaving] = useState(false);
 
   const isEdit = Boolean(initialData?.id);
@@ -65,7 +69,10 @@ export function PatientForm({
     }
   }, [isOpen, initialData]);
 
-  const handleChange = (field: keyof PatientFormData, value: string | number) => {
+  const handleChange = (
+    field: keyof PatientFormData,
+    value: string | number,
+  ) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     if (field === "date_of_birth" && typeof value === "string") {
       setForm((prev) => ({ ...prev, age: computeAge(value) }));
@@ -95,8 +102,10 @@ export function PatientForm({
       if (first) toast.error(first);
       return;
     }
-
     const payload: PatientFormData = { ...form, age: parsed.data.age };
+    if (payload.doctor_id === "") {
+      delete (payload as any).doctor_id;
+    }
     setIsSaving(true);
     try {
       const error = await onSubmit(payload);
@@ -105,7 +114,11 @@ export function PatientForm({
         toast.error(error);
         return;
       }
-      toast.success(isEdit ? "Patient updated successfully." : "Patient enrolled successfully.");
+      toast.success(
+        isEdit
+          ? "Patient updated successfully."
+          : "Patient enrolled successfully.",
+      );
       onClose();
       setForm(blankFormData);
     } catch {
@@ -138,11 +151,16 @@ export function PatientForm({
         className="bg-card rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col border border-border"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 id="patient-modal-title" className="text-2xl font-bold text-foreground p-6 pb-0">
+        <h2
+          id="patient-modal-title"
+          className="text-2xl font-bold text-foreground p-6 pb-0"
+        >
           {isEdit ? "Edit Patient" : "Enroll Patient"}
         </h2>
         <p className="text-sm text-muted-foreground px-6 pt-1">
-          {isEdit ? "Update patient details." : "Add a new patient to the registry."}
+          {isEdit
+            ? "Update patient details."
+            : "Add a new patient to the registry."}
         </p>
 
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
@@ -174,12 +192,16 @@ export function PatientForm({
                   <Input
                     type="date"
                     value={form.date_of_birth}
-                    onChange={(e) => handleChange("date_of_birth", e.target.value)}
+                    onChange={(e) =>
+                      handleChange("date_of_birth", e.target.value)
+                    }
                     className="bg-muted border-border"
                     aria-invalid={Boolean(fieldErrors.date_of_birth)}
                   />
                   {fieldErrors.date_of_birth && (
-                    <p className="text-xs text-destructive">{fieldErrors.date_of_birth}</p>
+                    <p className="text-xs text-destructive">
+                      {fieldErrors.date_of_birth}
+                    </p>
                   )}
                 </div>
                 <div className="space-y-2">
@@ -190,13 +212,17 @@ export function PatientForm({
                     type="number"
                     min={0}
                     value={form.age || ""}
-                    onChange={(e) => handleChange("age", parseInt(e.target.value, 10) || 0)}
+                    onChange={(e) =>
+                      handleChange("age", parseInt(e.target.value, 10) || 0)
+                    }
                     placeholder="Auto"
                     className="bg-muted border-border"
                     aria-invalid={Boolean(fieldErrors.age)}
                   />
                   {fieldErrors.age && (
-                    <p className="text-xs text-destructive">{fieldErrors.age}</p>
+                    <p className="text-xs text-destructive">
+                      {fieldErrors.age}
+                    </p>
                   )}
                 </div>
               </div>
@@ -212,13 +238,17 @@ export function PatientForm({
                 </label>
                 <Input
                   value={form.guardian_name}
-                  onChange={(e) => handleChange("guardian_name", e.target.value)}
+                  onChange={(e) =>
+                    handleChange("guardian_name", e.target.value)
+                  }
                   placeholder="Full name"
                   className="bg-muted border-border"
                   aria-invalid={Boolean(fieldErrors.guardian_name)}
                 />
                 {fieldErrors.guardian_name && (
-                  <p className="text-xs text-destructive">{fieldErrors.guardian_name}</p>
+                  <p className="text-xs text-destructive">
+                    {fieldErrors.guardian_name}
+                  </p>
                 )}
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -228,13 +258,17 @@ export function PatientForm({
                   </label>
                   <Input
                     value={form.guardian_relationship}
-                    onChange={(e) => handleChange("guardian_relationship", e.target.value)}
+                    onChange={(e) =>
+                      handleChange("guardian_relationship", e.target.value)
+                    }
                     placeholder="e.g. Mother"
                     className="bg-muted border-border"
                     aria-invalid={Boolean(fieldErrors.guardian_relationship)}
                   />
                   {fieldErrors.guardian_relationship && (
-                    <p className="text-xs text-destructive">{fieldErrors.guardian_relationship}</p>
+                    <p className="text-xs text-destructive">
+                      {fieldErrors.guardian_relationship}
+                    </p>
                   )}
                 </div>
                 <div className="space-y-2">
@@ -243,13 +277,17 @@ export function PatientForm({
                   </label>
                   <Input
                     value={form.guardian_contact_number}
-                    onChange={(e) => handleChange("guardian_contact_number", e.target.value)}
+                    onChange={(e) =>
+                      handleChange("guardian_contact_number", e.target.value)
+                    }
                     placeholder="09XX-XXX-XXXX"
                     className="bg-muted border-border"
                     aria-invalid={Boolean(fieldErrors.guardian_contact_number)}
                   />
                   {fieldErrors.guardian_contact_number && (
-                    <p className="text-xs text-destructive">{fieldErrors.guardian_contact_number}</p>
+                    <p className="text-xs text-destructive">
+                      {fieldErrors.guardian_contact_number}
+                    </p>
                   )}
                 </div>
               </div>
@@ -265,13 +303,17 @@ export function PatientForm({
                 </label>
                 <Input
                   value={form.medical_diagnosis}
-                  onChange={(e) => handleChange("medical_diagnosis", e.target.value)}
+                  onChange={(e) =>
+                    handleChange("medical_diagnosis", e.target.value)
+                  }
                   placeholder="Diagnosis"
                   className="bg-muted border-border"
                   aria-invalid={Boolean(fieldErrors.medical_diagnosis)}
                 />
                 {fieldErrors.medical_diagnosis && (
-                  <p className="text-xs text-destructive">{fieldErrors.medical_diagnosis}</p>
+                  <p className="text-xs text-destructive">
+                    {fieldErrors.medical_diagnosis}
+                  </p>
                 )}
               </div>
               <div className="space-y-2">
@@ -292,7 +334,9 @@ export function PatientForm({
                   ))}
                 </select>
                 {fieldErrors.doctor_id && (
-                  <p className="text-xs text-destructive">{fieldErrors.doctor_id}</p>
+                  <p className="text-xs text-destructive">
+                    {fieldErrors.doctor_id}
+                  </p>
                 )}
               </div>
               <div className="space-y-2">

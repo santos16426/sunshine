@@ -18,7 +18,7 @@ export const patientFormSchema = z
     guardian_relationship: z.string().min(1, "Relationship is required"),
     guardian_contact_number: z.string().min(1, "Contact number is required"),
     medical_diagnosis: z.string().min(1, "Medical diagnosis is required"),
-    doctor_id: z.string().min(1, "Please select a doctor"),
+    doctor_id: z.string().optional(),
     remarks: z.string(),
   })
   .refine(

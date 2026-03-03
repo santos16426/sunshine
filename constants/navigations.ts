@@ -26,7 +26,7 @@ const ADMIN_NAV: NavigationItem[] = [
   { name: "Therapists", href: "/therapists", icon: Stethoscope },
   { name: "Doctor Directory", href: "/doctors", icon: FolderOpen },
   { name: "Services", href: "/services", icon: Briefcase },
-  { name: "Billing", href: "/billing", icon: CreditCard },
+  // { name: "Billing", href: "/billing", icon: CreditCard },
   { name: "Appearance", href: "/settings", icon: Palette },
 ];
 

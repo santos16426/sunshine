@@ -574,7 +574,7 @@ const App = () => {
       `,
         }}
       />
-      <IntelligentChatbot messengerLink="https://www.facebook.com/sunshinelearninghub" />
+      <IntelligentChatbot messengerLink="https://www.messenger.com/t/650490498144824" />
     </div>
   );
 };
