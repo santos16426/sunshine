@@ -14,13 +14,17 @@ interface PatientListCardProps {
   onDelete: (id: string) => void;
 }
 
-export function PatientListCard({ patient: p, onEdit, onDelete }: PatientListCardProps) {
+export function PatientListCard({
+  patient: p,
+  onEdit,
+  onDelete,
+}: PatientListCardProps) {
   return (
     <article className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm">
       <div className="p-4 pb-3">
         <div className="min-w-0 flex-1">
-          <h3 className="text-lg font-bold text-foreground leading-tight truncate">
-            {p.name}
+          <h3 className="text-lg font-bold text-foreground leading-tight truncate capitalize">
+            {p.name.toLowerCase()}
           </h3>
         </div>
       </div>
@@ -49,12 +53,14 @@ export function PatientListCard({ patient: p, onEdit, onDelete }: PatientListCar
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
               Guardian
             </p>
-            <p className="text-sm font-bold text-foreground truncate">
-              {p.guardian_name}
+            <p className="text-sm font-bold text-foreground truncate capitalize">
+              {p.guardian_name.toLowerCase()}
             </p>
             <div className="flex items-center gap-1.5 text-muted-foreground mt-0.5">
               <Phone className="w-3 h-3 shrink-0" />
-              <span className="text-xs truncate">{p.guardian_contact_number}</span>
+              <span className="text-xs truncate">
+                {p.guardian_contact_number}
+              </span>
             </div>
           </div>
         </div>
@@ -62,8 +68,16 @@ export function PatientListCard({ patient: p, onEdit, onDelete }: PatientListCar
           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-0.5">
             Diagnosis
           </p>
-          <p className="text-sm text-foreground truncate">
-            {p.medical_diagnosis}
+          <p className="text-sm text-foreground truncate capitalize">
+            {p.medical_diagnosis.toLowerCase()}
+          </p>
+        </div>
+        <div>
+          <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-0.5">
+            Remarks
+          </p>
+          <p className="text-sm font-bold text-foreground truncate">
+            {p.remarks ?? "—"}
           </p>
         </div>
       </div>
@@ -77,6 +91,8 @@ export function PatientListCard({ patient: p, onEdit, onDelete }: PatientListCar
               name: p.name,
               date_of_birth: p.date_of_birth,
               age: p.age,
+              gender: p.gender ?? "",
+              email: p.email ?? "",
               guardian_name: p.guardian_name,
               guardian_relationship: p.guardian_relationship,
               guardian_contact_number: p.guardian_contact_number,

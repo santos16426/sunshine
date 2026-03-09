@@ -7,7 +7,9 @@ import type { TopPatientBySessions } from "../types";
 
 function getInitials(name: string): string {
   return name
-    .split(" ")
+    .replace(/["']/g, "")
+    .trim()
+    .split(/\s+/)
     .map((n) => n[0])
     .join("")
     .toUpperCase()
@@ -19,6 +21,7 @@ interface ActiveStarsProps {
 }
 
 export function ActiveStars({ patients }: ActiveStarsProps) {
+  console.log(patients);
   return (
     <div>
       <div className="bg-card rounded-[40px] border border-slate-200/50 shadow-sm overflow-hidden flex flex-col">
@@ -45,8 +48,8 @@ export function ActiveStars({ patients }: ActiveStarsProps) {
                     {getInitials(p.name)}
                   </div>
                   <div className="min-w-0">
-                    <h4 className="font-black text-slate-800 text-sm truncate">
-                      {p.name}
+                    <h4 className="font-black text-slate-800 text-sm truncate capitalize">
+                      {p.name.toLowerCase()}
                     </h4>
                     <div className="flex items-center gap-2 mt-0.5">
                       <div className="w-1.5 h-1.5 rounded-full" />

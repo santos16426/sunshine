@@ -22,6 +22,8 @@ const blankFormData: PatientFormData = {
   name: "",
   date_of_birth: "",
   age: 0,
+  gender: "",
+  email: "",
   guardian_name: "",
   guardian_relationship: "",
   guardian_contact_number: "",
@@ -49,6 +51,7 @@ export function PatientForm({
   const [form, setForm] = useState<PatientFormData>(
     initialData ?? blankFormData,
   );
+  console.log(initialData);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<
     Partial<Record<keyof PatientFormData, string>>
@@ -166,18 +169,18 @@ export function PatientForm({
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
           <div className="overflow-y-auto no-scrollbar flex-1 px-6 py-6 space-y-6">
             <section className="space-y-4">
-              <h3 className="text-sm font-bold text-primary uppercase tracking-[0.2em]">
+              <h3 className="text-sm font-bold text-primary capitalize tracking-[0.2em]">
                 Patient Identity
               </h3>
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                <label className="text-[10px] font-bold text-muted-foreground capitalize tracking-widest">
                   Full Name *
                 </label>
                 <Input
                   value={form.name}
                   onChange={(e) => handleChange("name", e.target.value)}
                   placeholder="e.g. Juan Dela Cruz"
-                  className="bg-muted border-border"
+                  className="bg-muted border-border capitalize"
                   aria-invalid={Boolean(fieldErrors.name)}
                 />
                 {fieldErrors.name && (
@@ -186,7 +189,7 @@ export function PatientForm({
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                  <label className="text-[10px] font-bold text-muted-foreground capitalize tracking-widest">
                     Date of Birth *
                   </label>
                   <Input
@@ -205,7 +208,7 @@ export function PatientForm({
                   )}
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                  <label className="text-[10px] font-bold text-muted-foreground capitalize tracking-widest">
                     Age
                   </label>
                   <Input
@@ -226,14 +229,37 @@ export function PatientForm({
                   )}
                 </div>
               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-muted-foreground capitalize tracking-widest">
+                    Gender
+                  </label>
+                  <select
+                    value={form.gender ?? ""}
+                    onChange={(e) => handleChange("gender", e.target.value)}
+                    className="w-full h-9 rounded-md border border-border bg-muted px-3 py-1 text-sm text-foreground"
+                    aria-invalid={Boolean(fieldErrors.gender)}
+                  >
+                    <option value="">Select gender...</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                  </select>
+                  {fieldErrors.gender && (
+                    <p className="text-xs text-destructive">
+                      {fieldErrors.gender}
+                    </p>
+                  )}
+                </div>
+              </div>
             </section>
 
             <section className="space-y-4">
-              <h3 className="text-sm font-bold text-primary uppercase tracking-[0.2em]">
+              <h3 className="text-sm font-bold text-primary capitalize tracking-[0.2em]">
                 Guardian Details
               </h3>
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                <label className="text-[10px] font-bold text-muted-foreground capitalize tracking-widest">
                   Guardian Name *
                 </label>
                 <Input
@@ -253,7 +279,7 @@ export function PatientForm({
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                  <label className="text-[10px] font-bold text-muted-foreground capitalize tracking-widest">
                     Relationship *
                   </label>
                   <Input
@@ -272,7 +298,7 @@ export function PatientForm({
                   )}
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                  <label className="text-[10px] font-bold text-muted-foreground capitalize tracking-widest">
                     Contact Number *
                   </label>
                   <Input
@@ -291,14 +317,32 @@ export function PatientForm({
                   )}
                 </div>
               </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-muted-foreground capitalize tracking-widest">
+                  Email Address
+                </label>
+                <Input
+                  type="email"
+                  value={form.email ?? ""}
+                  onChange={(e) => handleChange("email", e.target.value)}
+                  className="bg-muted border-border"
+                  aria-invalid={Boolean(fieldErrors.email)}
+                  placeholder="name@example.com"
+                />
+                {fieldErrors.date_of_birth && (
+                  <p className="text-xs text-destructive">
+                    {fieldErrors.email}
+                  </p>
+                )}
+              </div>
             </section>
 
             <section className="space-y-4">
-              <h3 className="text-sm font-bold text-primary uppercase tracking-[0.2em]">
+              <h3 className="text-sm font-bold text-primary capitalize tracking-[0.2em]">
                 Medical & Doctor
               </h3>
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                <label className="text-[10px] font-bold text-muted-foreground capitalize tracking-widest">
                   Medical Diagnosis *
                 </label>
                 <Input
@@ -317,11 +361,11 @@ export function PatientForm({
                 )}
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                <label className="text-[10px] font-bold text-muted-foreground capitalize tracking-widest">
                   Assigned Doctor *
                 </label>
                 <select
-                  value={form.doctor_id}
+                  value={form.doctor_id ?? ""}
                   onChange={(e) => handleChange("doctor_id", e.target.value)}
                   className="w-full h-9 rounded-md border border-border bg-muted px-3 py-1 text-sm text-foreground"
                   aria-invalid={Boolean(fieldErrors.doctor_id)}
@@ -340,7 +384,7 @@ export function PatientForm({
                 )}
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                <label className="text-[10px] font-bold text-muted-foreground capitalize tracking-widest">
                   Remarks
                 </label>
                 <textarea

@@ -6,6 +6,8 @@ function toPatient(row: {
   name: string;
   date_of_birth: string;
   age: number;
+  gender: string | null;
+  email: string | null;
   guardian_name: string;
   guardian_relationship: string;
   guardian_contact_number: string;
@@ -18,6 +20,8 @@ function toPatient(row: {
     name: row.name,
     date_of_birth: row.date_of_birth,
     age: row.age,
+    gender: row.gender,
+    email: row.email,
     guardian_name: row.guardian_name,
     guardian_relationship: row.guardian_relationship,
     guardian_contact_number: row.guardian_contact_number,
@@ -31,7 +35,7 @@ export async function fetchPatients(search?: string): Promise<Patient[]> {
   const supabase = createClient();
   let query = supabase
     .from("patients")
-    .select("id, name, date_of_birth, age, guardian_name, guardian_relationship, guardian_contact_number, medical_diagnosis, doctor_id, remarks")
+    .select("id, name, date_of_birth, age, gender, email, guardian_name, guardian_relationship, guardian_contact_number, medical_diagnosis, doctor_id, remarks")
     .order("name", { ascending: true });
 
   if (search && search.trim()) {
@@ -48,7 +52,7 @@ export async function fetchPatientsWithDoctors(search?: string): Promise<(Patien
   let query = supabase
     .from("patients")
     .select(`
-      id, name, date_of_birth, age, guardian_name, guardian_relationship, guardian_contact_number, medical_diagnosis, doctor_id, remarks,
+      id, name, date_of_birth, age, gender, email, guardian_name, guardian_relationship, guardian_contact_number, medical_diagnosis, doctor_id, remarks,
       doctors ( name )
     `)
     .order("name", { ascending: true });
@@ -78,6 +82,8 @@ export async function createPatient(payload: PatientFormData): Promise<Patient> 
       name: payload.name,
       date_of_birth: payload.date_of_birth,
       age: payload.age,
+      gender: payload.gender,
+      email: payload.email,
       guardian_name: payload.guardian_name,
       guardian_relationship: payload.guardian_relationship,
       guardian_contact_number: payload.guardian_contact_number,
@@ -85,7 +91,7 @@ export async function createPatient(payload: PatientFormData): Promise<Patient> 
       doctor_id: payload.doctor_id,
       remarks: payload.remarks || null,
     })
-    .select("id, name, date_of_birth, age, guardian_name, guardian_relationship, guardian_contact_number, medical_diagnosis, doctor_id, remarks")
+    .select("id, name, date_of_birth, age, guardian_name, guardian_relationship, guardian_contact_number, medical_diagnosis, doctor_id, remarks, gender, email")
     .single();
 
   if (error) throw error;
@@ -100,6 +106,8 @@ export async function updatePatient(id: string, payload: PatientFormData): Promi
       name: payload.name,
       date_of_birth: payload.date_of_birth,
       age: payload.age,
+      gender: payload.gender,
+      email: payload.email,
       guardian_name: payload.guardian_name,
       guardian_relationship: payload.guardian_relationship,
       guardian_contact_number: payload.guardian_contact_number,
@@ -108,7 +116,7 @@ export async function updatePatient(id: string, payload: PatientFormData): Promi
       remarks: payload.remarks || null,
     })
     .eq("id", id)
-    .select("id, name, date_of_birth, age, guardian_name, guardian_relationship, guardian_contact_number, medical_diagnosis, doctor_id, remarks")
+    .select("id, name, date_of_birth, age, gender, email, guardian_name, guardian_relationship, guardian_contact_number, medical_diagnosis, doctor_id, remarks")
     .single();
 
   if (error) throw error;

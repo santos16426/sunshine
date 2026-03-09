@@ -52,6 +52,8 @@ function PatientsPageContent() {
           name: p.name,
           date_of_birth: p.date_of_birth,
           age: p.age,
+          gender: p.gender ?? "",
+          email: p.email ?? "",
           guardian_name: p.guardian_name,
           guardian_relationship: p.guardian_relationship,
           guardian_contact_number: p.guardian_contact_number,

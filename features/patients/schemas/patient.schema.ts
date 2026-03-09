@@ -14,6 +14,8 @@ export const patientFormSchema = z
       "Invalid date"
     ),
     age: z.number().int().min(0, "Age must be 0 or greater"),
+    gender: z.string().optional(),
+    email: z.string().email("Invalid email address").optional().or(z.literal("")),
     guardian_name: z.string().min(1, "Guardian name is required"),
     guardian_relationship: z.string().min(1, "Relationship is required"),
     guardian_contact_number: z.string().min(1, "Contact number is required"),

@@ -4,6 +4,8 @@ export interface Patient {
   name: string;
   date_of_birth: string;
   age: number;
+  gender: string | null;
+  email: string | null;
   guardian_name: string;
   guardian_relationship: string;
   guardian_contact_number: string;
@@ -22,6 +24,8 @@ export interface PatientFormData {
   name: string;
   date_of_birth: string;
   age: number;
+  gender: string;
+  email: string;
   guardian_name: string;
   guardian_relationship: string;
   guardian_contact_number: string;
