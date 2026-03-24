@@ -51,6 +51,7 @@ export default function SchedulingPage() {
     fetchOptions,
     addSession,
     updateSession,
+    deleteSession,
     getPatientName,
     getTherapist,
     isLoading,
@@ -138,6 +139,18 @@ export default function SchedulingPage() {
     resetForm();
   };
 
+  const handleDeleteSession = async () => {
+    if (!editingSessionId) return;
+    try {
+      await deleteSession(editingSessionId);
+      resetForm();
+      setShowAddSessionModal(false);
+      loadRange();
+    } catch {
+      // Error already set in store
+    }
+  };
+
   return (
     <div className="space-y-6">
       <ScheduleGrid
@@ -178,6 +191,7 @@ export default function SchedulingPage() {
           formData={formData}
           onFormChange={setFormData}
           onSave={handleSaveSession}
+          onDelete={handleDeleteSession}
           onClose={handleCloseModal}
           patients={patients}
           therapists={therapists}
