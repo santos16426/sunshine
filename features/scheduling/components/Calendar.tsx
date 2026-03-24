@@ -36,7 +36,7 @@ interface CalendarProps {
   getAppointmentsForDay: (date: Date) => ScheduleSession[];
   getPatientName: (patientId: string) => string;
   getTherapist: (therapistId: string) => TherapistOption | undefined;
-  onEditSession: (sessionId: string) => void;
+  onEditSession: (sessionId: string, event: React.MouseEvent) => void;
   onDragStart: (e: React.DragEvent, sessionId: string) => void;
   onDragEnd: () => void;
   onMonthCellDragOver: (e: React.DragEvent, date: Date) => void;
@@ -226,7 +226,7 @@ export function Calendar({
                           onDragEnd={onDragEnd}
                           onClick={(e) => {
                             e.stopPropagation();
-                            onEditSession(session.id);
+                            onEditSession(session.id, e);
                           }}
                           className={cn(
                             "px-2 py-1 rounded-md border border-border  bg-card text-foreground text-[9px] font-bold truncate cursor-grab active:cursor-grabbing hover:bg-muted/40 transition-colors",
@@ -399,7 +399,7 @@ export function Calendar({
                                 draggable
                                 onDragStart={(e) => onDragStart(e, session.id)}
                                 onDragEnd={onDragEnd}
-                                onClick={() => onEditSession(session.id)}
+                                onClick={(e) => onEditSession(session.id, e)}
                                 className={cn(
                                   "absolute p-2 rounded-lg border border-border bg-card text-foreground text-[10px] font-bold overflow-hidden z-10 cursor-grab active:cursor-grabbing hover:bg-muted/40 transition-colors",
                                   draggedSessionId === session.id &&

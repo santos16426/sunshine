@@ -25,7 +25,7 @@ export interface ScheduleGridProps {
     sessionId: string,
     payload: { session_date?: string; session_time?: number },
   ) => Promise<void>;
-  onEditSession: (sessionId: string) => void;
+  onEditSession: (sessionId: string, event: React.MouseEvent) => void;
   onAddSession: () => void;
   currentDate: Date;
   viewMode: CalendarViewMode;

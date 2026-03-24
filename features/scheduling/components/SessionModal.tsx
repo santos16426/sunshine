@@ -2,16 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { Trash2 } from "lucide-react";
 import { FormSearchSelect } from "@/components/common/FormSearchSelect";
-import type { SessionFormData, PatientOption, TherapistOption, ServiceOption } from "../types";
+import type {
+  SessionFormData,
+  PatientOption,
+  TherapistOption,
+  ServiceOption,
+} from "../types";
 
 interface SessionModalProps {
   isEdit: boolean;
   formData: SessionFormData;
   onFormChange: (data: SessionFormData) => void;
   onSave: () => void;
-  onDelete?: () => void;
   onClose: () => void;
   patients: PatientOption[];
   therapists: TherapistOption[];
@@ -23,7 +26,6 @@ export function SessionModal({
   formData,
   onFormChange,
   onSave,
-  onDelete,
   onClose,
   patients,
   therapists,
@@ -43,22 +45,24 @@ export function SessionModal({
       aria-labelledby="session-modal-title"
     >
       <div className="bg-card rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border border-border relative">
-        {isEdit && onDelete ? (
-          <button
-            type="button"
-            onClick={onDelete}
-            className="absolute right-4 top-4 rounded-md p-2 text-destructive hover:bg-destructive/10 transition-colors"
-            aria-label="Delete session"
-            title="Delete session"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
-        ) : null}
-        <h2 id="session-modal-title" className="text-2xl font-bold text-foreground mb-6">
+        <h2
+          id="session-modal-title"
+          className="text-2xl font-bold text-foreground mb-6"
+        >
           {isEdit ? "Edit Session" : "Add New Session"}
         </h2>
 
         <div className="space-y-4">
+          <FormSearchSelect
+            label="Select Patient"
+            value={formData.patient_id}
+            onChange={(value) =>
+              onFormChange({ ...formData, patient_id: value })
+            }
+            options={patients.map((p) => ({ value: p.id, label: p.name }))}
+            placeholder="Search and select patient..."
+            required
+          />
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
               Date *
@@ -91,17 +95,6 @@ export function SessionModal({
               ))}
             </select>
           </div>
-
-          <FormSearchSelect
-            label="Select Patient"
-            value={formData.patient_id}
-            onChange={(value) =>
-              onFormChange({ ...formData, patient_id: value })
-            }
-            options={patients.map((p) => ({ value: p.id, label: p.name }))}
-            placeholder="Search and select patient..."
-            required
-          />
 
           <FormSearchSelect
             label="Select Therapist"

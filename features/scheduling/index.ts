@@ -1,6 +1,7 @@
 export { useSchedulingStore } from "./store/scheduling.store";
 export { ScheduleGrid } from "./components/ScheduleGrid";
 export { SessionModal } from "./components/SessionModal";
+export { ViewSessionDetailsPopup } from "./components/ViewSessionDetailsPopup";
 export { Calendar } from "./components/Calendar";
 export { SidebarAgenda } from "./components/SidebarAgenda";
 export { Filter } from "./components/Filter";

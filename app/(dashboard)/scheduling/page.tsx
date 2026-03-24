@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   useSchedulingStore,
   ScheduleGrid,
   SessionModal,
+  ViewSessionDetailsPopup,
 } from "@/features/scheduling";
 import type { CalendarViewMode } from "@/features/scheduling/constants/calendar.constants";
+import type { ScheduleSession } from "@/features/scheduling";
 
 const initialFormData = {
   patient_id: "",
@@ -59,7 +61,11 @@ export default function SchedulingPage() {
   } = useSchedulingStore();
 
   const [showAddSessionModal, setShowAddSessionModal] = useState(false);
+  const [showSessionDetailsModal, setShowSessionDetailsModal] = useState(false);
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0 });
+  const popoverRef = useRef<HTMLDivElement | null>(null);
   const [formData, setFormData] = useState(initialFormData);
 
   const [viewMode, setViewMode] = useState<CalendarViewMode>("Day");
@@ -103,6 +109,49 @@ export default function SchedulingPage() {
     }
   };
 
+  const handleOpenDetailsModal = (
+    sessionId: string,
+    event: React.MouseEvent,
+  ) => {
+    const anchor = event.currentTarget as HTMLElement;
+    const rect = anchor.getBoundingClientRect();
+    const popupWidth = 400;
+    const gutter = 12;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    const prefersRight = rect.right + gutter + popupWidth <= viewportWidth;
+    const left = prefersRight
+      ? rect.right + gutter
+      : Math.max(gutter, rect.left - popupWidth - gutter);
+
+    const top = Math.max(
+      gutter,
+      Math.min(rect.top, viewportHeight - 520 - gutter),
+    );
+
+    setPopoverPos({ top, left });
+    setSelectedSessionId(sessionId);
+    setShowSessionDetailsModal(true);
+  };
+
+  useEffect(() => {
+    if (!showSessionDetailsModal) return;
+
+    function handleOutsideClick(event: MouseEvent) {
+      const target = event.target as Node;
+      if (!popoverRef.current?.contains(target)) {
+        setShowSessionDetailsModal(false);
+        setSelectedSessionId(null);
+      }
+    }
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [showSessionDetailsModal]);
+
   const handleSaveSession = async () => {
     if (
       !formData.patient_id ||
@@ -140,16 +189,51 @@ export default function SchedulingPage() {
   };
 
   const handleDeleteSession = async () => {
-    if (!editingSessionId) return;
+    const sessionId = editingSessionId ?? selectedSessionId;
+    if (!sessionId) return;
     try {
-      await deleteSession(editingSessionId);
+      await deleteSession(sessionId);
       resetForm();
       setShowAddSessionModal(false);
+      setShowSessionDetailsModal(false);
+      setSelectedSessionId(null);
       loadRange();
     } catch {
       // Error already set in store
     }
   };
+
+  const selectedSession: ScheduleSession | undefined = selectedSessionId
+    ? sessions.find((session) => session.id === selectedSessionId)
+    : undefined;
+
+  const selectedServiceName = selectedSession
+    ? services.find((service) => service.id === selectedSession.service_id)?.name ??
+      "—"
+    : "—";
+
+  const selectedTherapistName = selectedSession
+    ? getTherapist(selectedSession.therapist_id)?.name ?? "—"
+    : "—";
+
+  const selectedPatientName = selectedSession
+    ? getPatientName(selectedSession.patient_id)
+    : "—";
+
+  const selectedScheduleDate = selectedSession
+    ? new Date(`${selectedSession.session_date}T00:00:00`).toLocaleDateString(
+        "en-US",
+        {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        },
+      )
+    : "—";
+
+  const selectedScheduleTime = selectedSession
+    ? `${String(selectedSession.session_time).padStart(2, "0")}:00`
+    : "—";
 
   return (
     <div className="space-y-6">
@@ -166,7 +250,7 @@ export default function SchedulingPage() {
             session_time: payload.session_time,
           })
         }
-        onEditSession={handleOpenEditModal}
+        onEditSession={handleOpenDetailsModal}
         onAddSession={() => {
           resetForm();
           setFormData({
@@ -191,13 +275,34 @@ export default function SchedulingPage() {
           formData={formData}
           onFormChange={setFormData}
           onSave={handleSaveSession}
-          onDelete={handleDeleteSession}
           onClose={handleCloseModal}
           patients={patients}
           therapists={therapists}
           services={services}
         />
       )}
+
+      {showSessionDetailsModal && selectedSession ? (
+        <ViewSessionDetailsPopup
+          patientName={selectedPatientName}
+          scheduleDate={selectedScheduleDate}
+          scheduleTime={selectedScheduleTime}
+          therapistName={selectedTherapistName}
+          serviceName={selectedServiceName}
+          remarks={selectedSession.remarks}
+          popoverPos={popoverPos}
+          popoverRef={popoverRef}
+          onEdit={() => {
+            setShowSessionDetailsModal(false);
+            handleOpenEditModal(selectedSession.id);
+          }}
+          onDelete={handleDeleteSession}
+          onClose={() => {
+            setShowSessionDetailsModal(false);
+            setSelectedSessionId(null);
+          }}
+        />
+      ) : null}
     </div>
   );
 }

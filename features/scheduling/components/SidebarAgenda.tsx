@@ -10,7 +10,7 @@ interface SidebarAgendaProps {
   selectedDayAppointments: ScheduleSession[];
   getTherapist: (therapistId: string) => TherapistOption | undefined;
   getPatientName: (patientId: string) => string;
-  onEditSession: (sessionId: string) => void;
+  onEditSession: (sessionId: string, event: React.MouseEvent) => void;
   onAddSession: () => void;
   isLoading: boolean;
   draggedSessionId: string | null;
@@ -61,7 +61,7 @@ export function SidebarAgenda({
                 draggable
                 onDragStart={(e) => onDragStart(e, session.id)}
                 onDragEnd={onDragEnd}
-                onClick={() => onEditSession(session.id)}
+                onClick={(e) => onEditSession(session.id, e)}
                 className={cn(
                   "my-2 bg-card p-5 rounded-3xl border border-border flex items-center gap-4 hover:border-primary/30 transition-all text-left group cursor-grab active:cursor-grabbing",
                   draggedSessionId === session.id && "opacity-50",
@@ -86,7 +86,7 @@ export function SidebarAgenda({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onEditSession(session.id);
+                    onEditSession(session.id, e);
                   }}
                   className="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 bg-muted text-muted-foreground hover:text-foreground transition-opacity"
                 >
