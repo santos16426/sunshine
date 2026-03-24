@@ -10,7 +10,11 @@ interface TherapistListTableProps {
   onDelete: (id: string) => void;
 }
 
-export function TherapistListTable({ therapists, onEdit, onDelete }: TherapistListTableProps) {
+export function TherapistListTable({
+  therapists,
+  onEdit,
+  onDelete,
+}: TherapistListTableProps) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left min-w-[640px]">
@@ -40,12 +44,14 @@ export function TherapistListTable({ therapists, onEdit, onDelete }: TherapistLi
               className="hover:bg-muted/50 transition-colors group"
             >
               <td className="px-6 lg:px-8 py-4 lg:py-6">
-                <p className="text-sm font-bold text-foreground truncate max-w-[180px]">
-                  {t.name}
+                <p className="text-sm font-bold text-foreground truncate max-w-[180px] capitalize">
+                  {t.name.toLowerCase()}
                 </p>
               </td>
               <td className="px-4 lg:px-6 py-4 lg:py-6">
-                <p className="text-sm text-muted-foreground">{t.therapist_type}</p>
+                <p className="text-sm text-muted-foreground">
+                  {t.therapist_type}
+                </p>
               </td>
               <td className="px-4 lg:px-6 py-4 lg:py-6">
                 <div className="flex items-center gap-1.5 text-muted-foreground">

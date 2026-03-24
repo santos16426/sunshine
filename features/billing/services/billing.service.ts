@@ -80,6 +80,21 @@ export interface TherapistOption {
   name: string;
 }
 
+export interface ServiceCutOption {
+  id: string;
+  clinic_cut: number;
+}
+
+export interface TherapistComputedRevenueRow {
+  therapist_id: string;
+  name: string;
+  type: string;
+  sessions_count: number;
+  gross_revenue: number;
+  clinic_share: number;
+  therapist_pay: number;
+}
+
 export async function fetchTherapistsForBilling(): Promise<TherapistOption[]> {
   const supabase = createClient();
   const { data, error } = await supabase
@@ -88,6 +103,65 @@ export async function fetchTherapistsForBilling(): Promise<TherapistOption[]> {
     .order("name", { ascending: true });
   if (error) throw error;
   return (data ?? []).map((r) => ({ id: r.id, name: r.name }));
+}
+
+export async function fetchServiceCutsForBilling(): Promise<ServiceCutOption[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase.from("services").select("id, clinic_cut");
+  if (error) throw error;
+  return (data ?? []).map((r) => ({
+    id: r.id,
+    clinic_cut: Number(r.clinic_cut ?? 0),
+  }));
+}
+
+export async function fetchTherapistComputedRevenue(
+  dateFrom: string,
+  dateTo: string
+): Promise<TherapistComputedRevenueRow[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("appointments")
+    .select(
+      "therapist_id, service_id, therapists!inner(name, therapist_type), services!inner(rate_per_hour, clinic_cut)"
+    )
+    .gte("appointment_date", dateFrom)
+    .lte("appointment_date", dateTo);
+  if (error) throw error;
+
+  const grouped = new Map<string, TherapistComputedRevenueRow>();
+  for (const row of data ?? []) {
+    const serviceRow = Array.isArray(row.services) ? row.services[0] : row.services;
+    const therapistRow = Array.isArray(row.therapists) ? row.therapists[0] : row.therapists;
+    if (!serviceRow || !therapistRow) continue;
+
+    const grossRevenue = Number(serviceRow.rate_per_hour ?? 0);
+    const clinicCut = Number(serviceRow.clinic_cut ?? 0);
+    const clinicShare = (grossRevenue * clinicCut) / 100;
+    const therapistPay = grossRevenue - clinicShare;
+    const therapistId = row.therapist_id as string;
+
+    const existing = grouped.get(therapistId);
+    if (existing) {
+      existing.sessions_count += 1;
+      existing.gross_revenue += grossRevenue;
+      existing.clinic_share += clinicShare;
+      existing.therapist_pay += therapistPay;
+      continue;
+    }
+
+    grouped.set(therapistId, {
+      therapist_id: therapistId,
+      name: String(therapistRow.name ?? "—"),
+      type: String(therapistRow.therapist_type ?? "—"),
+      sessions_count: 1,
+      gross_revenue: grossRevenue,
+      clinic_share: clinicShare,
+      therapist_pay: therapistPay,
+    });
+  }
+
+  return Array.from(grouped.values()).sort((a, b) => b.gross_revenue - a.gross_revenue);
 }
 
 export async function fetchPayroll(): Promise<PayrollTransaction[]> {

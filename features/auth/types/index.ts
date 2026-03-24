@@ -1,7 +1,9 @@
-import type { User } from '@supabase/supabase-js'
-
-/** Use Supabase User exactly. */
-export type AuthUser = User
+export interface AuthUser {
+  id: string
+  email?: string | null
+  app_metadata?: Record<string, unknown> | null
+  user_metadata?: Record<string, unknown> | null
+}
 
 /** App roles only. */
 export type AuthRole = 'admin' | 'secretary'
@@ -42,11 +44,19 @@ export function toAuthError(err: unknown, fallbackMessage: string): AuthError {
   return { message: fallbackMessage }
 }
 
-/** Read role from Supabase user (app_metadata or user_metadata). */
-export function getAuthRole(user: AuthUser | null): AuthRole | undefined {
+function isAuthRole(value: unknown): value is AuthRole {
+  return value === 'admin' || value === 'secretary'
+}
+
+/** Read role, preferring value from public.users when provided. */
+export function getAuthRole(
+  user: AuthUser | null,
+  publicUserRole?: unknown
+): AuthRole | undefined {
+  if (isAuthRole(publicUserRole)) return publicUserRole
   if (!user) return undefined
-  const role = (user.app_metadata?.role as string) ?? (user.user_metadata?.role as string)
-  if (role === 'admin' || role === 'secretary') return role
+  const metadataRole = user.app_metadata?.role ?? user.user_metadata?.role
+  if (isAuthRole(metadataRole)) return metadataRole
   return undefined
 }
 

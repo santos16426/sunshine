@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { Check, ChevronDown, LogOut } from "lucide-react";
-import { useAuthStore, getAuthRole } from "@/features/auth";
+import { LogOut } from "lucide-react";
+import { useAuthStore } from "@/features/auth";
 import { usePublicUser } from "@/features/users";
 import { useLayoutStore } from "@/store/layoutStore";
 import { Menu, User, Palette } from "lucide-react";
@@ -17,7 +17,7 @@ export default function Header() {
   const { isSidebarOpen, setIsSidebarOpen } = useLayoutStore();
   const { user, logout } = useAuthStore();
   const { profile } = usePublicUser();
-  const role = getAuthRole(user);
+  const role = profile?.role;
   const displayName =
     profile?.full_name?.trim() ||
     (user?.user_metadata?.first_name && user?.user_metadata?.last_name

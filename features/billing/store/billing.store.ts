@@ -8,7 +8,11 @@ import type {
   DateRange,
   PayrollTransaction,
 } from "../types";
-import type { TherapistOption } from "../services/billing.service";
+import type {
+  ServiceCutOption,
+  TherapistComputedRevenueRow,
+  TherapistOption,
+} from "../services/billing.service";
 import * as billingService from "../services/billing.service";
 import {
   getTodayRange,
@@ -21,15 +25,15 @@ interface BillingState {
   breakdown: BillingBreakdown | null;
   preset: BillingDatePreset;
   range: DateRange;
-  ownerCutPercentage: number;
   therapists: TherapistOption[];
+  serviceCuts: ServiceCutOption[];
+  therapistComputedRevenue: TherapistComputedRevenueRow[];
   payroll: PayrollTransaction[];
   isLoading: boolean;
   error: string | null;
 
   setPreset: (preset: BillingDatePreset) => void;
   setRange: (range: DateRange) => void;
-  setOwnerCutPercentage: (pct: number) => void;
   fetchBilling: () => Promise<void>;
   fetchPayroll: () => Promise<void>;
   addPayrollTransaction: (entry: {
@@ -58,8 +62,9 @@ export const useBillingStore = create<BillingState>((set, get) => ({
   breakdown: null,
   preset: "month",
   range: getMonthRange(),
-  ownerCutPercentage: 10,
   therapists: [],
+  serviceCuts: [],
+  therapistComputedRevenue: [],
   payroll: [],
   isLoading: false,
   error: null,
@@ -78,23 +83,25 @@ export const useBillingStore = create<BillingState>((set, get) => ({
     }
   },
 
-  setOwnerCutPercentage: (pct) => set({ ownerCutPercentage: pct }),
-
   fetchBilling: async () => {
     const { preset, range } = get();
     const { from, to } = preset === "range" ? range : getRangeForPreset(preset);
     set({ isLoading: true, error: null });
     try {
-      const [stats, breakdown, therapists, payroll] = await Promise.all([
+      const [stats, breakdown, therapists, serviceCuts, therapistComputedRevenue, payroll] = await Promise.all([
         billingService.fetchBillingStats(from, to),
         billingService.fetchBillingBreakdown(from, to),
         billingService.fetchTherapistsForBilling(),
+        billingService.fetchServiceCutsForBilling(),
+        billingService.fetchTherapistComputedRevenue(from, to),
         billingService.fetchPayroll(),
       ]);
       set({
         stats,
         breakdown,
         therapists,
+        serviceCuts,
+        therapistComputedRevenue,
         payroll,
         isLoading: false,
         error: null,
@@ -103,6 +110,7 @@ export const useBillingStore = create<BillingState>((set, get) => ({
       set({
         stats: null,
         breakdown: null,
+        therapistComputedRevenue: [],
         isLoading: false,
         error: err instanceof Error ? err.message : "Failed to load billing",
       });

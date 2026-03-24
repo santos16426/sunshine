@@ -1,6 +1,36 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+const ADMIN_ALLOWED_PREFIXES = [
+  '/dashboard',
+  '/patients',
+  '/therapists',
+  '/doctors',
+  '/services',
+  '/settings',
+  '/billing',
+  '/scheduling',
+] as const
+
+const SECRETARY_ALLOWED_PREFIXES = ['/patients', '/therapists', '/scheduling', '/schedule'] as const
+
+function isAllowedPath(pathname: string, allowedPrefixes: readonly string[]) {
+  return allowedPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))
+}
+
+async function getPublicUserRole(
+  supabase: ReturnType<typeof createServerClient>,
+  userId: string
+) {
+  const { data } = await supabase.from('users').select('role').eq('id', userId).maybeSingle()
+  return data?.role
+}
+
+function normalizeRole(value: unknown): 'admin' | 'secretary' {
+  if (value === 'secretary') return 'secretary'
+  return 'admin'
+}
+
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -62,11 +92,28 @@ export async function proxy(request: NextRequest) {
   }
 
   if (isAuthRoute && user) {
-    const redirectResponse = NextResponse.redirect(new URL('/dashboard', request.url))
+    const publicUserRole = await getPublicUserRole(supabase, user.id)
+    const role = normalizeRole(publicUserRole)
+    const defaultPath = role === 'secretary' ? '/scheduling' : '/dashboard'
+    const redirectResponse = NextResponse.redirect(new URL(defaultPath, request.url))
     supabaseResponse.cookies.getAll().forEach((cookie) =>
       redirectResponse.cookies.set(cookie.name, cookie.value, { path: '/' })
     )
     return redirectResponse
+  }
+
+  if (isProtectedRoute && user) {
+    const publicUserRole = await getPublicUserRole(supabase, user.id)
+    const role = normalizeRole(publicUserRole)
+    const allowedPrefixes = role === 'secretary' ? SECRETARY_ALLOWED_PREFIXES : ADMIN_ALLOWED_PREFIXES
+    if (!isAllowedPath(pathname, allowedPrefixes)) {
+      const fallbackPath = role === 'secretary' ? '/scheduling' : '/dashboard'
+      const redirectResponse = NextResponse.redirect(new URL(fallbackPath, request.url))
+      supabaseResponse.cookies.getAll().forEach((cookie) =>
+        redirectResponse.cookies.set(cookie.name, cookie.value, { path: '/' })
+      )
+      return redirectResponse
+    }
   }
 
   return supabaseResponse

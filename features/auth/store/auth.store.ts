@@ -15,6 +15,21 @@ interface AuthState {
   initFromSession: () => Promise<void>
 }
 
+function mapSupabaseUserToAuthUser(user: {
+  id: string
+  email?: string | null
+  app_metadata?: Record<string, unknown> | null
+  user_metadata?: Record<string, unknown> | null
+} | null): AuthUser | null {
+  if (!user) return null
+  return {
+    id: user.id,
+    email: user.email ?? null,
+    app_metadata: user.app_metadata ?? null,
+    user_metadata: user.user_metadata ?? null,
+  }
+}
+
 export const useAuthStore = create<AuthState>()((set, get) => ({
   user: null,
   initialized: false,
@@ -42,7 +57,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       data: { user },
     } = await supabase.auth.getUser()
     set({
-      user: user ?? null,
+      user: mapSupabaseUserToAuthUser(user),
       initialized: true,
       isLoading: false,
     })

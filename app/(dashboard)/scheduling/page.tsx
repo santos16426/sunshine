@@ -6,6 +6,7 @@ import {
   ScheduleGrid,
   SessionModal,
 } from "@/features/scheduling";
+import type { CalendarViewMode } from "@/features/scheduling/constants/calendar.constants";
 
 const initialFormData = {
   patient_id: "",
@@ -17,7 +18,7 @@ const initialFormData = {
 };
 
 function getRangeStartEnd(
-  viewMode: "Month" | "Week",
+  viewMode: CalendarViewMode,
   currentDate: Date,
 ): { start: Date; end: Date } {
   const year = currentDate.getFullYear();
@@ -29,11 +30,15 @@ function getRangeStartEnd(
       end: new Date(year, monthIdx + 1, 0),
     };
   }
-  const start = new Date(currentDate);
-  start.setDate(currentDate.getDate() - currentDate.getDay());
-  const end = new Date(start);
-  end.setDate(start.getDate() + 6);
-  return { start, end };
+  if (viewMode === "Week") {
+    const start = new Date(currentDate);
+    start.setDate(currentDate.getDate() - currentDate.getDay());
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    return { start, end };
+  }
+
+  return { start: new Date(currentDate), end: new Date(currentDate) };
 }
 
 export default function SchedulingPage() {
@@ -56,7 +61,7 @@ export default function SchedulingPage() {
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [formData, setFormData] = useState(initialFormData);
 
-  const [viewMode, setViewMode] = useState<"Month" | "Week">("Month");
+  const [viewMode, setViewMode] = useState<CalendarViewMode>("Day");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDateObj, setSelectedDateObj] = useState(new Date());
   const [selectedTherapistIds, setSelectedTherapistIds] = useState<string[]>(

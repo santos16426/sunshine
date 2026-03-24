@@ -1,22 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  DollarSign,
-  Wallet,
-  Calendar,
-  Plus,
-  CheckCircle2,
-  XCircle,
-  Trash2,
-} from "lucide-react";
-import { StatBox } from "@/features/dashboard/components/StatBox";
+import { Plus, CheckCircle2, XCircle, Trash2 } from "lucide-react";
 import { useBillingStore } from "../store/billing.store";
-import {
-  getTodayRange,
-  getWeekRange,
-  getMonthRange,
-} from "../utils/dateRange";
+import { getTodayRange, getWeekRange, getMonthRange } from "../utils/dateRange";
 import type { BillingDatePreset } from "../types";
 
 const PRESETS: { key: BillingDatePreset; label: string }[] = [
@@ -63,14 +50,14 @@ export function BillingOverview() {
     breakdown,
     preset,
     range,
-    ownerCutPercentage,
     therapists,
+    serviceCuts,
+    therapistComputedRevenue,
     payroll,
     isLoading,
     error,
     setPreset,
     setRange,
-    setOwnerCutPercentage,
     fetchBilling,
     addPayrollTransaction,
     markPayrollPaid,
@@ -78,7 +65,10 @@ export function BillingOverview() {
   } = useBillingStore();
 
   const [showPayrollModal, setShowPayrollModal] = useState(false);
-  const [payrollForm, setPayrollForm] = useState({ therapistId: "", amount: "" });
+  const [payrollForm, setPayrollForm] = useState({
+    therapistId: "",
+    amount: "",
+  });
 
   useEffect(() => {
     fetchBilling();
@@ -94,8 +84,27 @@ export function BillingOverview() {
           : formatRangeLabel(getMonthRange().from, getMonthRange().to);
 
   const totalGrossRevenue = stats?.total_revenue ?? 0;
-  const totalOwnerCut = (totalGrossRevenue * ownerCutPercentage) / 100;
-  const totalTherapistCut = totalGrossRevenue - totalOwnerCut;
+  const serviceCutById = new Map(
+    serviceCuts.map((item) => [item.id, item.clinic_cut]),
+  );
+  const totalsFromServiceRows = (breakdown?.by_service ?? []).reduce(
+    (acc, row) => {
+      const clinicCut = serviceCutById.get(row.service_id) ?? 0;
+      const clinicShare = (row.total_revenue * clinicCut) / 100;
+      return {
+        clinicRevenue: acc.clinicRevenue + clinicShare,
+        therapistPay: acc.therapistPay + (row.total_revenue - clinicShare),
+      };
+    },
+    { clinicRevenue: 0, therapistPay: 0 },
+  );
+  const hasServiceRows = (breakdown?.by_service?.length ?? 0) > 0;
+  const totalTherapistPay = hasServiceRows
+    ? totalsFromServiceRows.therapistPay
+    : (stats?.total_therapist_pay ?? 0);
+  const totalClinicRevenue = hasServiceRows
+    ? totalsFromServiceRows.clinicRevenue
+    : totalGrossRevenue - totalTherapistPay;
 
   const getTherapistName = (id: string) =>
     therapists.find((t) => t.id === id)?.name ?? "—";
@@ -139,74 +148,50 @@ export function BillingOverview() {
         </p>
       </div>
 
-      {/* Settings and date range */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="rounded-2xl border border-border bg-card p-6">
-          <h2 className="text-lg font-semibold text-foreground mb-4">
-            Billing Settings
-          </h2>
-          <div className="flex items-center gap-4">
-            <label className="text-sm font-medium text-muted-foreground">
-              Owner cut (%):
-            </label>
-            <input
-              type="number"
-              min={0}
-              max={100}
-              value={ownerCutPercentage}
-              onChange={(e) =>
-                setOwnerCutPercentage(Number(e.target.value) || 0)
-              }
-              className="w-20 rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            <span className="text-sm text-muted-foreground">%</span>
+      {/* Date range */}
+      <div className="rounded-2xl border border-border bg-card p-6">
+        <h2 className="text-lg font-semibold text-foreground mb-4">
+          Date range
+        </h2>
+        <div className="space-y-3">
+          <div className="flex gap-2 flex-wrap">
+            {PRESETS.map(({ key, label }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setPreset(key)}
+                className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
+                  preset === key
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "border-border bg-card hover:bg-muted"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
-        </div>
-
-        <div className="rounded-2xl border border-border bg-card p-6">
-          <h2 className="text-lg font-semibold text-foreground mb-4">
-            Date range
-          </h2>
-          <div className="space-y-3">
-            <div className="flex gap-2 flex-wrap">
-              {PRESETS.map(({ key, label }) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setPreset(key)}
-                  className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
-                    preset === key
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "border-border bg-card hover:bg-muted"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
+          {preset === "range" && (
+            <div className="flex items-center gap-2 pt-2 flex-wrap">
+              <input
+                type="date"
+                value={range.from}
+                onChange={(e) =>
+                  setRange({ ...range, from: e.target.value || range.from })
+                }
+                className="rounded-xl border border-border bg-background px-3 py-2 text-sm"
+              />
+              <span className="text-muted-foreground">to</span>
+              <input
+                type="date"
+                value={range.to}
+                onChange={(e) =>
+                  setRange({ ...range, to: e.target.value || range.to })
+                }
+                className="rounded-xl border border-border bg-background px-3 py-2 text-sm"
+              />
             </div>
-            {preset === "range" && (
-              <div className="flex items-center gap-2 pt-2 flex-wrap">
-                <input
-                  type="date"
-                  value={range.from}
-                  onChange={(e) =>
-                    setRange({ ...range, from: e.target.value || range.from })
-                  }
-                  className="rounded-xl border border-border bg-background px-3 py-2 text-sm"
-                />
-                <span className="text-muted-foreground">to</span>
-                <input
-                  type="date"
-                  value={range.to}
-                  onChange={(e) =>
-                    setRange({ ...range, to: e.target.value || range.to })
-                  }
-                  className="rounded-xl border border-border bg-background px-3 py-2 text-sm"
-                />
-              </div>
-            )}
-            <p className="text-xs text-muted-foreground">{rangeLabel}</p>
-          </div>
+          )}
+          <p className="text-xs text-muted-foreground">{rangeLabel}</p>
         </div>
       </div>
 
@@ -239,10 +224,10 @@ export function BillingOverview() {
             </div>
             <div className="rounded-2xl border border-border bg-card p-6">
               <h3 className="text-sm font-medium text-muted-foreground mb-2">
-                Your earnings ({ownerCutPercentage}%)
+                Clinic revenue
               </h3>
               <p className="text-2xl font-bold text-primary">
-                {formatCurrency(totalOwnerCut)}
+                {formatCurrency(totalClinicRevenue)}
               </p>
             </div>
             <div className="rounded-2xl border border-border bg-card p-6">
@@ -250,110 +235,10 @@ export function BillingOverview() {
                 Therapists to pay
               </h3>
               <p className="text-2xl font-bold text-chart-1">
-                {formatCurrency(totalTherapistCut)}
+                {formatCurrency(totalTherapistPay)}
               </p>
             </div>
           </div>
-
-          {/* Revenue by therapist */}
-          <div className="rounded-2xl border border-border bg-card overflow-hidden">
-            <div className="px-6 py-4 border-b border-border">
-              <h2 className="text-lg font-semibold text-foreground">
-                Revenue by therapist
-              </h2>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-muted/50 border-b border-border">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
-                      Therapist
-                    </th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
-                      Type
-                    </th>
-                    <th className="px-6 py-3 text-right text-sm font-semibold text-foreground">
-                      Avg rate/hr
-                    </th>
-                    <th className="px-6 py-3 text-right text-sm font-semibold text-foreground">
-                      Sessions
-                    </th>
-                    <th className="px-6 py-3 text-right text-sm font-semibold text-foreground">
-                      Gross revenue
-                    </th>
-                    <th className="px-6 py-3 text-right text-sm font-semibold text-foreground">
-                      Your cut
-                    </th>
-                    <th className="px-6 py-3 text-right text-sm font-semibold text-foreground">
-                      Therapist pay
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {(breakdown?.by_therapist ?? []).map((row) => {
-                    const ownerCut = (row.gross_revenue * ownerCutPercentage) / 100;
-                    const therapistPay = row.gross_revenue - ownerCut;
-                    const avgRate =
-                      row.sessions_count > 0
-                        ? row.gross_revenue / row.sessions_count
-                        : 0;
-                    return (
-                      <tr key={row.therapist_id} className="hover:bg-muted/30">
-                        <td className="px-6 py-4 text-sm font-medium text-foreground">
-                          {row.name}
-                        </td>
-                        <td className="px-6 py-4 text-sm">
-                          <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-chart-1/20 text-chart-1">
-                            {row.type}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-right text-sm text-foreground">
-                          {formatCurrencyDecimals(avgRate)}
-                        </td>
-                        <td className="px-6 py-4 text-right text-sm text-muted-foreground">
-                          {row.sessions_count}
-                        </td>
-                        <td className="px-6 py-4 text-right text-sm font-semibold text-foreground">
-                          {formatCurrencyDecimals(row.gross_revenue)}
-                        </td>
-                        <td className="px-6 py-4 text-right text-sm font-semibold text-primary">
-                          {formatCurrencyDecimals(ownerCut)}
-                        </td>
-                        <td className="px-6 py-4 text-right text-sm font-semibold text-chart-1">
-                          {formatCurrencyDecimals(therapistPay)}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  {(breakdown?.by_therapist?.length ?? 0) > 0 && (
-                    <tr className="bg-muted/50 font-semibold border-t-2 border-border">
-                      <td colSpan={3} className="px-6 py-4 text-sm text-foreground">
-                        Total
-                      </td>
-                      <td className="px-6 py-4 text-right text-sm text-foreground">
-                        {stats?.total_sessions ?? 0}
-                      </td>
-                      <td className="px-6 py-4 text-right text-sm text-foreground">
-                        {formatCurrencyDecimals(totalGrossRevenue)}
-                      </td>
-                      <td className="px-6 py-4 text-right text-sm text-primary">
-                        {formatCurrencyDecimals(totalOwnerCut)}
-                      </td>
-                      <td className="px-6 py-4 text-right text-sm text-chart-1">
-                        {formatCurrencyDecimals(totalTherapistCut)}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-              {(breakdown?.by_therapist?.length ?? 0) === 0 && !isLoading && (
-                <div className="px-6 py-8 text-center text-muted-foreground text-sm">
-                  No sessions in this period.
-                </div>
-              )}
-            </div>
-          </div>
-
           {/* Revenue by service */}
           {(breakdown?.by_service?.length ?? 0) > 0 && (
             <div className="rounded-2xl border border-border bg-card overflow-hidden">
@@ -382,7 +267,10 @@ export function BillingOverview() {
                         Total revenue
                       </th>
                       <th className="px-6 py-3 text-right text-sm font-semibold text-foreground">
-                        Your cut ({ownerCutPercentage}%)
+                        Clinic cut
+                      </th>
+                      <th className="px-6 py-3 text-right text-sm font-semibold text-foreground">
+                        Clinic share
                       </th>
                       <th className="px-6 py-3 text-right text-sm font-semibold text-foreground">
                         Therapist pay
@@ -391,9 +279,9 @@ export function BillingOverview() {
                   </thead>
                   <tbody className="divide-y divide-border">
                     {(breakdown?.by_service ?? []).map((row) => {
-                      const ownerCut =
-                        (row.total_revenue * ownerCutPercentage) / 100;
-                      const therapistPay = row.total_revenue - ownerCut;
+                      const clinicCut = serviceCutById.get(row.service_id) ?? 0;
+                      const clinicShare = (row.total_revenue * clinicCut) / 100;
+                      const therapistPay = row.total_revenue - clinicShare;
                       return (
                         <tr key={row.service_id} className="hover:bg-muted/30">
                           <td className="px-6 py-4 text-sm font-medium text-foreground">
@@ -408,8 +296,11 @@ export function BillingOverview() {
                           <td className="px-6 py-4 text-right text-sm font-semibold text-foreground">
                             {formatCurrencyDecimals(row.total_revenue)}
                           </td>
+                          <td className="px-6 py-4 text-right text-sm text-muted-foreground">
+                            {clinicCut}%
+                          </td>
                           <td className="px-6 py-4 text-right text-sm font-semibold text-primary">
-                            {formatCurrencyDecimals(ownerCut)}
+                            {formatCurrencyDecimals(clinicShare)}
                           </td>
                           <td className="px-6 py-4 text-right text-sm font-semibold text-chart-1">
                             {formatCurrencyDecimals(therapistPay)}
@@ -418,41 +309,37 @@ export function BillingOverview() {
                       );
                     })}
                     <tr className="bg-muted/50 font-semibold border-t-2 border-border">
-                      <td colSpan={2} className="px-6 py-4 text-sm text-foreground">
+                      <td
+                        colSpan={2}
+                        className="px-6 py-4 text-sm text-foreground"
+                      >
                         Total
                       </td>
                       <td className="px-6 py-4 text-right text-sm text-foreground">
                         {breakdown?.by_service?.reduce(
                           (s, r) => s + r.sessions_count,
-                          0
+                          0,
                         ) ?? 0}
                       </td>
                       <td className="px-6 py-4 text-right text-sm text-foreground">
                         {formatCurrencyDecimals(
                           breakdown?.by_service?.reduce(
                             (s, r) => s + r.total_revenue,
-                            0
-                          ) ?? 0
+                            0,
+                          ) ?? 0,
                         )}
+                      </td>
+                      <td className="px-6 py-4 text-right text-sm text-muted-foreground">
+                        -
                       </td>
                       <td className="px-6 py-4 text-right text-sm text-primary">
                         {formatCurrencyDecimals(
-                          (breakdown?.by_service ?? []).reduce(
-                            (s, r) =>
-                              s + (r.total_revenue * ownerCutPercentage) / 100,
-                            0
-                          )
+                          totalsFromServiceRows.clinicRevenue,
                         )}
                       </td>
                       <td className="px-6 py-4 text-right text-sm text-chart-1">
                         {formatCurrencyDecimals(
-                          (breakdown?.by_service ?? []).reduce(
-                            (s, r) =>
-                              s +
-                              r.total_revenue -
-                              (r.total_revenue * ownerCutPercentage) / 100,
-                            0
-                          )
+                          totalsFromServiceRows.therapistPay,
                         )}
                       </td>
                     </tr>
@@ -461,9 +348,109 @@ export function BillingOverview() {
               </div>
             </div>
           )}
+          {/* Revenue by therapist */}
+          <div className="rounded-2xl border border-border bg-card overflow-hidden">
+            <div className="px-6 py-4 border-b border-border">
+              <h2 className="text-lg font-semibold text-foreground">
+                Revenue by therapist
+              </h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-muted/50 border-b border-border">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
+                      Therapist
+                    </th>
+
+                    <th className="px-6 py-3 text-right text-sm font-semibold text-foreground">
+                      Avg rate/hr
+                    </th>
+                    <th className="px-6 py-3 text-right text-sm font-semibold text-foreground">
+                      Sessions
+                    </th>
+                    <th className="px-6 py-3 text-right text-sm font-semibold text-foreground">
+                      Gross revenue
+                    </th>
+
+                    <th className="px-6 py-3 text-right text-sm font-semibold text-foreground">
+                      Clinic share
+                    </th>
+                    <th className="px-6 py-3 text-right text-sm font-semibold text-foreground">
+                      Therapist pay
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {therapistComputedRevenue.map((row) => {
+                    const avgRate =
+                      row.sessions_count > 0
+                        ? row.gross_revenue / row.sessions_count
+                        : 0;
+                    const effectiveClinicCut =
+                      row.gross_revenue > 0
+                        ? (row.clinic_share / row.gross_revenue) * 100
+                        : 0;
+                    return (
+                      <tr key={row.therapist_id} className="hover:bg-muted/30">
+                        <td className="px-6 py-4 text-sm font-medium text-foreground capitalize">
+                          {row.name.toLowerCase()}
+                        </td>
+
+                        <td className="px-6 py-4 text-right text-sm text-foreground">
+                          {formatCurrencyDecimals(avgRate)}
+                        </td>
+                        <td className="px-6 py-4 text-right text-sm text-muted-foreground">
+                          {row.sessions_count}
+                        </td>
+                        <td className="px-6 py-4 text-right text-sm font-semibold text-foreground">
+                          {formatCurrencyDecimals(row.gross_revenue)}
+                        </td>
+
+                        <td className="px-6 py-4 text-right text-sm font-semibold text-primary">
+                          {formatCurrencyDecimals(row.clinic_share)}
+                        </td>
+                        <td className="px-6 py-4 text-right text-sm font-semibold text-chart-1">
+                          {formatCurrencyDecimals(row.therapist_pay)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {therapistComputedRevenue.length > 0 && (
+                    <tr className="bg-muted/50 font-semibold border-t-2 border-border">
+                      <td
+                        colSpan={2}
+                        className="px-6 py-4 text-sm text-foreground"
+                      >
+                        Total
+                      </td>
+                      <td className="px-6 py-4 text-right text-sm text-foreground">
+                        {stats?.total_sessions ?? 0}
+                      </td>
+                      <td className="px-6 py-4 text-right text-sm text-foreground">
+                        {formatCurrencyDecimals(totalGrossRevenue)}
+                      </td>
+
+                      <td className="px-6 py-4 text-right text-sm text-primary">
+                        {formatCurrencyDecimals(totalClinicRevenue)}
+                      </td>
+                      <td className="px-6 py-4 text-right text-sm text-chart-1">
+                        {formatCurrencyDecimals(totalTherapistPay)}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+              {therapistComputedRevenue.length === 0 && !isLoading && (
+                <div className="px-6 py-8 text-center text-muted-foreground text-sm">
+                  No sessions in this period.
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* Payroll */}
-          <div className="rounded-2xl border border-border bg-card overflow-hidden">
+          {/* <div className="rounded-2xl border border-border bg-card overflow-hidden">
             <div className="px-6 py-4 border-b border-border flex items-center justify-between">
               <h2 className="text-lg font-semibold text-foreground">
                 Therapist payroll
@@ -561,12 +548,12 @@ export function BillingOverview() {
                 </table>
               )}
             </div>
-          </div>
+          </div> */}
         </>
       )}
 
       {/* Add payroll modal */}
-      {showPayrollModal && (
+      {/* {showPayrollModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="rounded-2xl border border-border bg-card shadow-2xl p-8 max-w-md w-full mx-4">
             <h2 className="text-xl font-bold text-foreground mb-6">
@@ -629,7 +616,7 @@ export function BillingOverview() {
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

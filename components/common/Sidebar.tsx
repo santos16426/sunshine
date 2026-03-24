@@ -6,15 +6,17 @@ import { LogOut, X } from "lucide-react";
 import { getNavigation, type NavigationItem } from "@/constants/navigations";
 import { Logo } from "@/components/common/Logo";
 import { useAuthStore } from "@/features/auth";
+import { usePublicUser } from "@/features/users";
 import { useLayoutStore } from "@/store/layoutStore";
 import { useEffect, useState } from "react";
 
 export default function Sidebar() {
   const [isMobile, setIsMobile] = useState(false);
   const router = useRouter();
-  const { user, logout } = useAuthStore();
+  const { logout } = useAuthStore();
+  const { profile } = usePublicUser();
   const { isSidebarOpen, setIsSidebarOpen } = useLayoutStore();
-  const navigation: NavigationItem[] = getNavigation(user);
+  const navigation: NavigationItem[] = getNavigation(profile);
   const pathname = usePathname();
   const handleLogout = () => {
     logout();

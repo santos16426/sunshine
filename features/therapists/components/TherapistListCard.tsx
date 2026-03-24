@@ -10,16 +10,22 @@ interface TherapistListCardProps {
   onDelete: (id: string) => void;
 }
 
-export function TherapistListCard({ therapist: t, onEdit, onDelete }: TherapistListCardProps) {
+export function TherapistListCard({
+  therapist: t,
+  onEdit,
+  onDelete,
+}: TherapistListCardProps) {
   return (
     <article className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm">
       <div className="p-4 pb-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <h3 className="text-lg font-bold text-foreground leading-tight truncate">
-              {t.name}
+            <h3 className="text-lg font-bold text-foreground leading-tight truncate capitalize">
+              {t.name.toLowerCase()}
             </h3>
-            <p className="text-sm text-muted-foreground mt-0.5">{t.therapist_type}</p>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {t.therapist_type}
+            </p>
           </div>
           <span
             className="w-10 h-10 rounded-xl border border-border shrink-0"

@@ -7,10 +7,9 @@ import {
   FolderOpen,
   Briefcase,
   CreditCard,
-  Settings,
   Palette,
 } from "lucide-react";
-import type { AuthUser } from "@/features/auth";
+import type { PublicUser } from "@/features/users";
 
 export interface NavigationItem {
   name: string;
@@ -26,11 +25,17 @@ const ADMIN_NAV: NavigationItem[] = [
   { name: "Therapists", href: "/therapists", icon: Stethoscope },
   { name: "Doctor Directory", href: "/doctors", icon: FolderOpen },
   { name: "Services", href: "/services", icon: Briefcase },
-  // { name: "Billing", href: "/billing", icon: CreditCard },
+  { name: "Billing", href: "/billing", icon: CreditCard },
   { name: "Appearance", href: "/settings", icon: Palette },
 ];
 
-export function getNavigation(_user: AuthUser | null): NavigationItem[] {
-  // TODO: Implement navigation for other roles
+const SECRETARY_NAV: NavigationItem[] = [
+  { name: "Scheduling", href: "/scheduling", icon: Calendar },
+  { name: "Patients", href: "/patients", icon: Users },
+  { name: "Therapists", href: "/therapists", icon: Stethoscope },
+];
+
+export function getNavigation(profile: PublicUser | null): NavigationItem[] {
+  if (profile?.role === "secretary") return SECRETARY_NAV;
   return ADMIN_NAV;
 }

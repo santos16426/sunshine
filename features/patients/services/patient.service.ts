@@ -57,9 +57,13 @@ export async function fetchPatientsWithDoctors(search?: string): Promise<(Patien
     `)
     .order("name", { ascending: true });
 
-  if (search && search.trim()) {
-    query = query.ilike("name", `%${search.trim()}%`);
-  }
+    if (search && search.trim()) {
+      const term = `%${search.trim()}%`;
+
+      query = query.or(
+        `name.ilike.${term},email.ilike.${term},guardian_name.ilike.${term},guardian_contact_number.ilike.${term},medical_diagnosis.ilike.${term},remarks.ilike.${term}`
+      );
+    }
 
   const { data, error } = await query;
   if (error) throw error;
